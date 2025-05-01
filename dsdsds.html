@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hospitales Cercanos</title>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Hospitales cercanos a tu ubicación</h2>
+    <div id="map"></div>
+
+    <script>
+      let map;
+
+      function initMap() {
+        // Intentar obtener la ubicación del usuario
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+
+              // Crear el mapa
+              map = new google.maps.Map(document.getElementById("map"), {
+                center: userLocation,
+                zoom: 15,
+              });
+
+              // Marcador de la ubicación del usuario
+              new google.maps.Marker({
+                position: userLocation,
+                map,
+                title: "Tu ubicación",
+              });
+
+              // Buscar hospitales cerca con Places API
+              const service = new google.maps.places.PlacesService(map);
+              const request = {
+                location: userLocation,
+                radius: 5000, // en metros
+                type: ['hospital'],
+              };
+
+              service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                  for (let i = 0; i < results.length; i++) {
+                    const place = results[i];
+                    new google.maps.Marker({
+                      position: place.geometry.location,
+                      map,
+                      title: place.name,
+                    });
+                  }
+                } else {
+                  alert("No se encontraron hospitales cercanos.");
+                }
+              });
+            },
+            () => {
+              alert("No se pudo obtener tu ubicación.");
+            }
+          );
+        } else {
+          alert("Tu navegador no soporta geolocalización.");
+        }
+      }
+    </script>
+
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqqUsryxm1rcpL9lz0ESrzP0cW_IOMOdw&libraries=places&callback=initMap"
+    ></script>
+  </body>
+</html>
